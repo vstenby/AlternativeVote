@@ -2,7 +2,7 @@
 
 ## About 
 
-This code was written for the S/M-KID 2020 KABS election, where we wanted to use the Alternative Vote system. CGP Grey has made a good video explaining how the Alternative Vote system works here:
+This code was written for the S/M-KID 2021 KABS election, where we wanted to use the Alternative Vote system. CGP Grey has made a good video explaining how the Alternative Vote system works here:
 
 [![Watch the video here](https://img.youtube.com/vi/3Y3jE3B8HsE/maxresdefault.jpg)](https://www.youtube.com/watch?v=3Y3jE3B8HsE)
 

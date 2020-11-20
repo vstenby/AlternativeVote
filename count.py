@@ -39,7 +39,14 @@ def main():
         return
     
     vote_df = read_votes(path)
-       
+      
+    #Tiebreak methods (if multiple candidates have the lowest number of votes)
+    #All means that all candidates with the same low amount of vote should be eliminated.
+    tiebreak_method = 'all'
+    
+    #Coin means that a coin is flipped among the candidates with the same low amount of votes.
+    #tiebreak_method = 'coin'
+    
     #All candidates are running
     running = vote_df.columns.to_numpy()
     
@@ -66,16 +73,17 @@ def main():
             #Add the vote to the top candidate.
             votecount[running == candidate] += 1
        
-                    
+        #If all of the remaining candidates have the same amount of votes,
+        #then there is a draw.
+        if len(np.unique(votecount)) == 1:
+            raise ValueError('Draw.')
+       
         #Count the percentages
         votepct = votecount/np.sum(votecount)*100
         
         print_results(running, votecount, i)
         if np.any(votepct >= 50):
-            #If votepct is split 50/50, then it is a draw.
-            if np.all(votepct == 50):
-                raise ValueError('We have a draw.')
-            
+            #If votepct is split 50/50, then it is a draw.            
             winner = running[np.argmax(votecount)]
             print(f'{winner} wins.')
             break
@@ -87,16 +95,19 @@ def main():
                 #Eliminate a single candidate.
                 least_popular = least_popular[0]
                 print(f'No candidate exceeds 50%. {least_popular} is eliminated.\n')
-            elif len(least_popular) == len(running):
-                #The vote is a draw.
-                print(votepct)
-                print('The vote is a draw')
-                raise ValueError('Vote is a draw.')
             else:
-                #Eliminate multiple candidates
-                s = ', '.join(least_popular[:-1]) + ' and ' + least_popular[-1]
-                print(f'No candidate exceeds 50%. {s} are eliminated.\n')
-                
+                #Several candidates have the same low amount of votes.
+                if tiebreak_method is 'all':
+                    s = ', '.join(least_popular[:-1]) + ' and ' + least_popular[-1]
+                    print(f'No candidate exceeds 50%. {s} are eliminated.\n')
+                elif tiebreak_method is 'coin':
+                    #Draw a single one at random
+                    least_popular = np.random.choice(least_popular,1)
+                    least_popular = least_popular[0]
+                    print(f'No candidate exceeds 50%. A coin is flipped, and {least_popular} is eliminated.\n')
+                else:
+                    raise ValueError('Unknown tiebreak method.')
+                    
             #Keep those who should not be eliminated.
             running = running[np.invert(np.isin(running,least_popular))]
         # -- Alternative Vote, END --

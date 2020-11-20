@@ -6,12 +6,17 @@ This code was written for the S/M-KID 2021 KABS election, where we wanted to use
 
 [![Watch the video here](https://img.youtube.com/vi/3Y3jE3B8HsE/maxresdefault.jpg)](https://www.youtube.com/watch?v=3Y3jE3B8HsE)
 
+You can also read more about the Alternative Vote, or Instant-runoff voting as it's also called, on the Wikipedia page [here](https://en.wikipedia.org/wiki/Instant-runoff_voting).
 
 ## Download 
 
 To download this repository, type the following in your terminal:
   
 `` git clone https://github.com/vstenby/AlternativeVote.git ``
+
+## Voting Procedure
+
+At the moment, this code only works with **full preferential voting**. This means that all voters have to mark a preference for *every* candidate. At the S/M-KID KABS21 election, this will be done in Google Forms. An example of a form can be seen [here](https://forms.gle/i724RPzX8FH3e6fU8). When downloaded, this form is the ``form_demo.csv`` file. 
 
 ## Functions
 

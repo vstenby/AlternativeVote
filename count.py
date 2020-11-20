@@ -39,13 +39,12 @@ def main():
         return
     
     vote_df = read_votes(path)
-    
+       
     #All candidates are running
     running = vote_df.columns.to_numpy()
     
     i = 0
-    
-    # -- Start while loop here --
+    # -- Alternative Vote, START --
     while True:
         i += 1
         
@@ -72,7 +71,11 @@ def main():
         votepct = votecount/np.sum(votecount)*100
         
         print_results(running, votecount, i)
-        if np.any(votepct >= 50): 
+        if np.any(votepct >= 50):
+            #If votepct is split 50/50, then it is a draw.
+            if np.all(votepct == 50):
+                raise ValueError('We have a draw.')
+            
             winner = running[np.argmax(votecount)]
             print(f'{winner} wins.')
             break
@@ -84,6 +87,11 @@ def main():
                 #Eliminate a single candidate.
                 least_popular = least_popular[0]
                 print(f'No candidate exceeds 50%. {least_popular} is eliminated.\n')
+            elif len(least_popular) == len(running):
+                #The vote is a draw.
+                print(votepct)
+                print('The vote is a draw')
+                raise ValueError('Vote is a draw.')
             else:
                 #Eliminate multiple candidates
                 s = ', '.join(least_popular[:-1]) + ' and ' + least_popular[-1]
@@ -91,7 +99,8 @@ def main():
                 
             #Keep those who should not be eliminated.
             running = running[np.invert(np.isin(running,least_popular))]
-            
+        # -- Alternative Vote, END --
+        
 
 if __name__ == "__main__":
     main()

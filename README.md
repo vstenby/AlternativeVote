@@ -26,7 +26,7 @@ The main function of this repository is `count.py`, which counts the votes in a 
 
 The function is called as follows:
 
-``python count.py sheets_demo.csv``
+``python count.py forms_demo.csv``
 
 ### `gentest.py`
 

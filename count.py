@@ -34,7 +34,7 @@ def main():
     import sys
     
     path = sys.argv[1].strip()
-    
+
     try:
         not_counted = sys.argv[2:]
     except:
@@ -126,6 +126,10 @@ def main():
                     
             #Keep those who should not be eliminated.
             running = running[np.invert(np.isin(running,least_popular))]
+            if len(running) == 1:
+                winner = running[0]
+                print(f'{winner} wins.')
+                break
         # -- Alternative Vote, END --
         
 

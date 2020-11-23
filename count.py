@@ -32,11 +32,24 @@ def read_votes(path):
 
 def main():
     import sys
+    
+    path = sys.argv[1].strip()
+    
     try:
-        path = ' '.join(sys.argv[1:])
+        not_counted = sys.argv[2:]
     except:
-        print('.csv file not found')
-        return
+        not_counted = []
+    
+    if len(not_counted) == 0:
+        s = 'All candidates are running.'
+    elif len(not_counted) == 1:
+        s = not_counted[0] + ' is not counted.'
+    else:
+        s = ', '.join(not_counted[:-1]) + ' and ' + not_counted[-1] + ' are not counted.'
+    print(s)
+    print('')
+    
+    not_counted = np.asarray(not_counted)
     
     vote_df = read_votes(path)
       
@@ -49,6 +62,9 @@ def main():
     
     #All candidates are running
     running = vote_df.columns.to_numpy()
+    
+    #Remove the candidates that we should not count.
+    running = running[np.invert(np.isin(running,not_counted))]
     
     i = 0
     # -- Alternative Vote, START --

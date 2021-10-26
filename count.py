@@ -1,13 +1,61 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 19 17:11:45 2020
-
-@author: viktorstenby
-"""
 
 import pandas as pd
 import numpy as np
+import argparse
+import os
+    
+def verify(infile, print_count = False):
+    '''
+    Verify the vote, i.e. count the number of votes. 
+    '''
+    
+    if not os.path.exists('constituents.csv'):
+        print('constituents.csv is needed to verify vote.')
+        return
+        
+    constituents = pd.read_csv('constituents.csv')
+    
+    if 'Studienummer' not in constituents.columns:
+        return
+    
+    constituents = constituents.sort_values('Studienummer')
+          
+    if not infile.endswith('.csv'): infile += '.csv'
+    
+    voters = pd.read_csv(infile)['Studienummer'].to_numpy()
+    unique_voters = np.sort(np.unique(voters))
+    
+    s1 = 'Studynumber'.ljust(15) + 'Votes cast'.center(10) + 'Constituent'.center(20) + 'Valid'.center(10) + 'Name'.center(30)
+    
+    if print_count:
+        print(s1)
+        print('-'*len(s1))
+        
+    status = 'valid'
+    
+    for voter in unique_voters:
+        votecount   = np.sum(voter == voters)
+        constituent = voter in constituents['Studienummer'].to_numpy()
+        valid_vote = votecount == 1 and constituent
+        if not valid_vote: status = 'invalid'
+        if constituent:
+            name = constituents['Navn'].loc[constituents['Studienummer'] == voter].iloc[0]
+        else:
+            name = ''
+            
+        s2 = voter.ljust(15) + str(votecount).center(10) + str(constituent).center(20) + str(valid_vote).center(10) + name.ljust(30)
+        
+        if print_count:
+            print(s2)
+    
+    if print_count:
+        print('')
+        print(f'Conclusion: The vote is {status} with a total of {len(unique_voters)} unique voters.')
+        print('')
+        
+    return status
 
 def print_results(running, votecount, ncount):
     votepct = votecount/np.sum(votecount)*100
@@ -31,14 +79,28 @@ def read_votes(path):
     return df
 
 def main():
-    import sys
-    
-    path = sys.argv[1].strip()
 
-    try:
-        not_counted = sys.argv[2:]
-    except:
-        not_counted = []
+    #Set up the arguments. 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', default=None, type=str, help='specify the path to the csv you want to count.')
+    parser.add_argument('--exclude', default="['']", type=str, help='specify the candidates you want to exclude from the count.')
+    parser.add_argument('--tiebreak', default='stop', choices = ['stop', 'coin', 'all'], type=str, help='specify the tiebreak method you want to use. Default is to stop the count.')
+    parser.add_argument('--ignore-invalid', default=False, action='store_true', help='allows a non-valid vote to be counted.')
+    
+    #TODO: This should be implemented!
+    #parser.add_argument('--include-nonconstituents', default=False, action='store_true', help='decides whether or not nonconstituents should be allowed to vote.')
+    
+    args = parser.parse_args()
+    
+    #Set the path
+    path = args.path
+
+    not_counted = eval(args.exclude)
+    not_counted = [x for x in not_counted if x != '']
+    
+    status = verify(path, print_count=True)
+    if (status == 'invalid')&(not args.ignore_invalid):
+        return
     
     if len(not_counted) == 0:
         s = 'All candidates are running.'
@@ -53,13 +115,6 @@ def main():
     
     vote_df = read_votes(path)
       
-    #Tiebreak methods (if multiple candidates have the lowest number of votes)
-    #All means that all candidates with the same low amount of vote should be eliminated.
-    tiebreak_method = 'all'
-    
-    #Coin means that a coin is flipped among the candidates with the same low amount of votes.
-    #tiebreak_method = 'coin'
-    
     #All candidates are running
     running = vote_df.columns.to_numpy()
     
@@ -113,16 +168,19 @@ def main():
                 print(f'No candidate exceeds 50%. {least_popular} is eliminated.\n')
             else:
                 #Several candidates have the same low amount of votes.
-                if tiebreak_method is 'all':
+                if args.tiebreak == 'all':
                     s = ', '.join(least_popular[:-1]) + ' and ' + least_popular[-1]
                     print(f'No candidate exceeds 50%. {s} are eliminated.\n')
-                elif tiebreak_method is 'coin':
+                elif args.tiebreak == 'coin':
                     #Draw a single one at random
                     least_popular = np.random.choice(least_popular,1)
                     least_popular = least_popular[0]
                     print(f'No candidate exceeds 50%. A coin is flipped, and {least_popular} is eliminated.\n')
+                elif args.tiebreak == 'stop':
+                    print(f"The count has come to an end since args.tiebreak = 'stop'.")
+                    return
                 else:
-                    raise ValueError('Unknown tiebreak method.')
+                    raise NotImplementedError('Tiebreak method is not implemented.')
                     
             #Keep those who should not be eliminated.
             running = running[np.invert(np.isin(running,least_popular))]
@@ -130,6 +188,7 @@ def main():
                 winner = running[0]
                 print(f'{winner} wins.')
                 break
+                
         # -- Alternative Vote, END --
         
 

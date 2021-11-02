@@ -61,7 +61,7 @@ def print_results(running, votecount, ncount):
     votepct = votecount/np.sum(votecount)*100
     
     s = 'The votes have been counted. These are the results:'
-    print(f'Count {ncount}'.center(len(s)))
+    print(f'Count {ncount} (n = {int(votecount.sum())})'.center(len(s)))
     print(s)
     for candidate, votes, pct in zip(running, votecount, votepct):
         pct_string = format(np.round(pct,2),'.2f').rjust(5)
@@ -130,16 +130,26 @@ def main():
         
         for n, vote in vote_df.iterrows():
             vote = vote.to_numpy()
+                    
+            #Drop candidates where this voter does not have a preference.
+            candidates = vote_df.columns[~pd.isna(vote)]
             
-            #Sort the candidates based on vote. 
-            #Here, vote contains 1:ncandidate, so this sort cannot go wrong.
-            preferences = vote_df.columns[np.argsort(vote)]
+            #Drop na votes such that we can sort on it.
+            vote = vote[~pd.isna(vote)]
+            
+            #Sort the candidates based on vote. Here, candidates which the voter does not have a preference is removed.
+            preferences = candidates[np.argsort(vote)]
             
             #Keep the candidates who are not eliminated.
             preferences = preferences[np.isin(preferences, running)]
             
-            #Take the top preference.
-            candidate = preferences[0]        
+
+            #Try to take the top preference, otherwise the vote is not counted because the voter does not have an opinion.
+            try:
+                candidate = preferences[0]
+            except:
+                #This voter does not have an opinion.
+                continue
             
             #Add the vote to the top candidate.
             votecount[running == candidate] += 1
